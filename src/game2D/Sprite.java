@@ -3,6 +3,7 @@ package game2D;
 import java.awt.Image;
 import java.awt.*;
 import java.awt.geom.*;
+import java.util.ArrayList;
 
 /**
  * This class provides the functionality for a moving animated image or Sprite.
@@ -13,7 +14,9 @@ import java.awt.geom.*;
 public class Sprite {
 
 	// The current Animation to use for this sprite
-    private Animation anim;		
+    private Animation anim;
+    private ArrayList<Animation> atkCombo = new ArrayList<Animation>();
+    private int comboPointer = 0;
 
     // Position (pixels)
     private float x;
@@ -26,6 +29,16 @@ public class Sprite {
     // Velocity (pixels per millisecond)
     private float dx;
     private float dy;
+
+    // Default Velocities for this sprite
+    private float dxDefault = 0.1f; // right-direction value; make negative to flip
+    private float jumpDefault = -0.1f; // negative dy, determines the force of the jump.
+    private float gravityDefault = 0.002f; // positive dy; determines gravity force. closer to 0 = lower gravity
+
+    private boolean goRight;
+    private boolean goLeft;
+    private boolean isGrounded;
+    private boolean tryJump;
 
     // Dimensions of the sprite
     private float height;
@@ -48,6 +61,8 @@ public class Sprite {
     private int xoff=0;
     private int yoff=0;
 
+
+
     // A value to determine whether the sprite has a unique hitbox
     // Also that hitbox's parameters
     private boolean uniqueHitbox;
@@ -64,6 +79,10 @@ public class Sprite {
     private boolean flippedY;
     // Determine whether the sprite is attacking; may require multiple collision boxes in 1 sprite
     private boolean attacking;
+    private int atkXOff;
+    private int atkYOff;
+    private int atkWidth;
+    private int atkHeight;
     // Sprite type may determine special interactions with certain tiles or sprites
     private SpriteType spriteType;
 
@@ -188,7 +207,9 @@ public class Sprite {
         else {
             flippedX = false;
         }
-        updateHitbox();
+        if (scaleXChange == true){
+            updateHitbox();
+        }
         anim.update(elapsedTime);
         width = anim.getImage().getWidth(null);
         height = anim.getImage().getHeight(null);
@@ -318,7 +339,7 @@ public class Sprite {
 		scaling and rotation are only applied when
 		using the drawTransformed method.
 	*/
-    public void setScaleX(float s) { scaleX = s; scaleXChange = true;}
+    public void setScaleX(float s) { if(scaleX != s){scaleXChange = true;} scaleX = s;}
 
 	/**
 		Get the current value of the scaling attribute.
@@ -329,7 +350,7 @@ public class Sprite {
     	return scaleX;
     }
 
-    public void setScaleY(float s) { scaleY = s; scaleYChange = true;}
+    public void setScaleY(float s) { if(scaleY != s){scaleYChange = true;}scaleY = s;}
 
     public double getScaleY() { return scaleY; }
 
@@ -440,7 +461,7 @@ public class Sprite {
 
 		AffineTransform transform = new AffineTransform();
         double flipX = 0;
-        int flipY = 0;
+        double flipY = 0;
         if (scaleX < 0){
             flipX = width * -scaleX;
         }
@@ -478,6 +499,129 @@ public class Sprite {
     	yoff = y;
     }
 
+    public int getXoff() {
+        return xoff;
+    }
+
+    public int getYoff() {
+        return yoff;
+    }
+
+    /**
+     * Get the default horizontal speed for this sprite.
+     * @return float dxDefault
+     */
+    public float getDxDefault() {
+        return dxDefault;
+    }
+
+    /**
+     * Replace the default horizontal speed for this sprite.
+     * @param dxDefault - the speed as a float value. Should be positive!
+     */
+    public void setDxDefault(float dxDefault) {
+        this.dxDefault = dxDefault;
+    }
+
+    /**
+     * Get the default starting speed of a jump for this sprite. Higher value = higher jumps.
+     * @return
+     */
+    public float getJumpDefault() {
+        return jumpDefault;
+    }
+
+    /**
+     * Replace the default starting speed of a jump for this sprite. Higher value = higher jumps.
+     * @param  - the jump force as a float value.
+     */
+    public void setJumpDefault(float jumpDefault) {
+        this.jumpDefault = jumpDefault;
+    }
+
+    /**
+     * Get the default force of gravity for this sprite. Closer to 0 = lower gravity.
+     * @return
+     */
+    public float getGravityDefault() {
+        return gravityDefault;
+    }
+
+    /**
+     * Replace the
+     * @param gravityDefault - the gravity force as a float value.
+     */
+    public void setGravityDefault(float gravityDefault) {
+        this.gravityDefault = gravityDefault;
+    }
+
+    /**
+     * Determine whether the sprite is trying to go right.
+     * If the sprite is knocked to the left but still facing right this should remain true!
+     * @return
+     */
+    public boolean isGoRight() {
+        return goRight;
+    }
+
+    /**
+     * Declare whether the srpite is trying to go to the right.
+     * Even if the sprite is knocked to the left but still facing right this should remain true!
+     * @param goRight
+     */
+    public void setGoRight(boolean goRight) {
+        this.goRight = goRight;
+    }
+
+    /**
+     * Determine whether the sprite is trying to go to the left.
+     * Even if the sprite is knocked to the right but still facing left this should remain true!
+     * @return
+     */
+    public boolean isGoLeft() {
+        return goLeft;
+    }
+
+    /**
+     * Declare whether the sprite is trying to go left.
+     * If the sprite is knocked to the right but still facing left this should remain true!
+     * @param goLeft
+     */
+    public void setGoLeft(boolean goLeft) {
+        this.goLeft = goLeft;
+    }
+
+    /**
+     * Determine whether the sprite is on the ground or not.
+     * @return
+     */
+    public boolean isGrounded() {
+        return isGrounded;
+    }
+
+    /**
+     * Declare whether the sprite is on the ground or not.
+     * @param grounded
+     */
+    public void setGrounded(boolean grounded) {
+        isGrounded = grounded;
+    }
+
+    /**
+     * Determine whether the sprite is trying to jump.
+     * @return
+     */
+    public boolean isTryJump() {
+        return tryJump;
+    }
+
+    /**
+     * Declare whether the sprite is trying to jump.
+     * @param tryJump
+     */
+    public void setTryJump(boolean tryJump) {
+        this.tryJump = tryJump;
+    }
     /**
      * A method to get the center X coordinate of a sprite.
      * I have a feeling I will need to calculate this a lot, so might as well make these methods.
@@ -516,12 +660,18 @@ public class Sprite {
         }
     }
 
+    /**
+     * This method tries to ensure two things; one, that the image doesn't flip around the (0,0) coordinate of the sprite
+     * second, it tries to ensure that the hitbox does not move when flipping the image, just the sprite.
+     */
     public void updateHitbox(){
         if (flippedX == false) {
             hbXOff = trueHbXOff;
+            shiftX(-((width/2) - trueHbXOff - hbWidth));
         }
         else {
-            hbXOff = flipHbXOff;
+            hbXOff = flipHbXOff + (int) width;
+            shiftX((width/2) - trueHbXOff - hbWidth);
         }
         if (flippedY == false){
             hbYOff = trueHbYOff;
@@ -562,4 +712,32 @@ public class Sprite {
     public int getHbHeight() {return hbHeight;}
     public void setHbHeight(int hbHeight) {this.hbHeight = hbHeight;}
 
+    public void createCombo(Animation... attack){
+        atkCombo.clear();
+        for (Animation atk : attack) {
+            atkCombo.add(atk);
+        }
+    }
+
+    public int getComboLength() {
+        return atkCombo.size();
+    }
+
+    public Animation getFirstAttack() {
+        return atkCombo.get(0);
+    }
+    public Animation getNextAttack() {
+        if (atkCombo.size() <= 1){
+            return atkCombo.get(0);
+        }
+        else {
+            if (comboPointer + 1 >= atkCombo.size()){
+                comboPointer = 0;
+            }
+            else {
+                comboPointer++;
+            }
+            return atkCombo.get(comboPointer);
+        }
+    }
 }

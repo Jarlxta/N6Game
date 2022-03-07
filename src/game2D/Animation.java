@@ -291,6 +291,8 @@ public class Animation {
     	if (f < 0 || f >= frames.size()) return;
     	currFrameIndex = f;
     }
+
+    public long getTotalDuration() { return totalDuration; }
     
     /**
      * Private class to hold information about a given
